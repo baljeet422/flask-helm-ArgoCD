@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: flask-app  
-        image: redis:7-alpine ###################### to be changed
+        image: baljeetkaur12/flask-app-img
         ports:
         - containerPort: 8181
           name: AppPort

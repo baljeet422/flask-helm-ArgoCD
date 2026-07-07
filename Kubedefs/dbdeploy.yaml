@@ -16,7 +16,7 @@ spec:
    spec:
      containers:
      - name: flaskdb
-       image: nginx:1.14.2  ########################### to change
+       image: baljeetkaur12/flask-mysql-img
        ports:
        - name: flask-port
        - containerPort: 3306
