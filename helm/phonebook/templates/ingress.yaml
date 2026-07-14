@@ -10,8 +10,7 @@ metadata:
     alb.ingress.kubernetes.io/backend-protocol: HTTP
 spec:
   rules:
-    - host: {{ .Values.ingress.host }}
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
