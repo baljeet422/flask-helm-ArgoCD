@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app  
+  labels:
+    app: flask-app  
+spec:
+  replicas: {{ .Values.app.replicas }}
+  selector:
+    matchLabels:
+      app: flask-app  
+  template:
+    metadata:
+      labels:
+        app: flask-app  
+    spec:
+{{- if .Values.dockerregistry.enabled }}
+      imagePullSecrets:
+        - name: docker-registry-secret
+{{- end }}
+      initContainers:
+        - name: init-flaskdb
+          image: {{ .Values.initcontainers.image }}
+          command:
+            - sh
+            - -c
+            - |
+              until nslookup flaskdb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done;
+        - name: init-flask-redis
+          image: {{ .Values.initcontainers.image }}
+          command:
+            - sh
+            - -c
+            - |
+              until nslookup flask-redis.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myredis; sleep 2; done;      
+      containers:
+      - name: flask-app 
+        image: {{ .Values.app.image }}:{{ .Values.app.tag }}
+        ports:
+        - containerPort: {{ .Values.app.containerPort }}
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  MYSQL_HOST: { { .Values.configmap.mysqlHost } }
+  MYSQL_DATABASE: { { .Values.configmap.mysqlDatabase } }
+  REDIS_HOST: { { .Values.configmap.redisHost } }

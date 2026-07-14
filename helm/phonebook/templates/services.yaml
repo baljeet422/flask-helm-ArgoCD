@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: flask-app 
+  spec:
+    ports:
+      - port: {{ .Values.app.servicePort }}
+        protocol: TCP
+        targetPort: {{ .Values.app.containerPort }}
+    selector:
+      app: flask-app
+      type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: flaskdb
+  spec:
+    ports:
+      - port: {{ .Values.db.servicePort }}
+        protocol: TCP
+        targetPort: {{ .Values.db.containerPort }}
+    selector:
+      app: flaskdb
+      type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: flask-redis
+  spec:
+    ports:
+      - port: {{ .Values.redis.servicePort }}
+        protocol: TCP
+        targetPort: {{ .Values.redis.containerPort }}
+    selector:
+      app:  flask-redis
+      type: ClusterIP

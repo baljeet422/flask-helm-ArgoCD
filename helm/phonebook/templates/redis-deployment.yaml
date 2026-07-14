@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-redis
+  labels:
+    app: flask-redis
+spec:
+  replicas: {{ .Values.redis.replicas }}
+  selector:
+    matchLabels:
+      app:  flask-redis
+  template:
+    metadata:
+      labels:
+        app:  flask-redis
+    spec:
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image }}:{{ .Values.redis.tag }}
+        ports:
+        - containerPort: {{ .Values.redis.containerPort }}

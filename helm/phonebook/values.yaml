@@ -1,0 +1,53 @@
+defaultUser: guest
+app:
+  image: baljeetkaur12/flask-app-img
+  tag: latest
+  replicas: 1
+  containerPort: 8181
+  servicePort: 8181
+
+db:
+  image: baljeetkaur12/flask-mysql-img
+  tag: latest
+  replicas: 1
+  containerPort: 3306
+  servicePort: 3306
+  storageClass: gp2
+  storageSize: 3Gi
+
+redis:
+  image: redis
+  tag: latest
+  replicas: 1
+  containerPort: 6379
+  servicePort: 6379
+
+initcontainers:
+  image: busybox
+  tag: latest
+  command:
+    - /bin/sh
+    - -c
+    - "echo init"
+
+ingress:
+  enabled: true
+  host: example.com
+  servicePort: 8181
+
+configmap:
+  mysqlHost: phonebook-mysql
+  mysqlDatabase: flaskmysql
+  redisHost: redis
+
+secrets:
+  mysqlUser: flaskmysqluser
+  mysqlPassword: flaskmysql456
+  mysqlRootPassword: dbmysql345
+
+dockerregistry:
+  enabled: false
+  server: ""
+  username: ""
+  password: ""
+  email: ""

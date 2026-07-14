@@ -38,4 +38,4 @@ spec:
         command: ['sh', '-c', "until nslookup flaskdb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
       - name: init-flask-redis
         image: busybox:1.28
-        command: ['sh', '-c', "until nslookup flask-redis.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done"]    
+        command: ['sh', '-c', "until nslookup flask-redis.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myredis; sleep 2; done"]    
