@@ -38,7 +38,7 @@ ingress:
 configmap:
   mysqlHost: phonebook-mysql
   mysqlDatabase: flaskmysql
-  redisHost: redis
+  redisHost: flask-redis
 
 secrets:
   mysqlUser: flaskmysqluser
