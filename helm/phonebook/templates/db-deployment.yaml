@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flaskdb
+  name: phonebook-mysql
   labels:
-    app: flaskdb
+    app: phonebook-mysql
 spec:
   replicas: {{ .Values.db.replicas }}
   selector:
     matchLabels:
-      app: flaskdb
+      app: phonebook-mysql
   template:
     metadata:
       labels:
-        app: flaskdb
+        app: phonebook-mysql
     spec:
 {{- if .Values.dockerregistry.enabled }}
       imagePullSecrets:
         - name: docker-registry-secret
 {{- end }}
       containers:
-      - name: flaskdb
+      - name: phonebook-mysql
         image: {{ .Values.db.image }}:{{ .Values.db.tag }}
         ports:
         - containerPort: {{ .Values.db.containerPort }}

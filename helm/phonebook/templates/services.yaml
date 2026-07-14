@@ -16,14 +16,14 @@ items:
 - apiVersion: v1
   kind: Service
   metadata:
-    name: flaskdb
+    name: phonebook-mysql
   spec:
     ports:
       - port: {{ .Values.db.servicePort }}
         protocol: TCP
         targetPort: {{ .Values.db.containerPort }}
     selector:
-      app: flaskdb
+      app: phonebook-mysql
       type: ClusterIP
 - apiVersion: v1
   kind: Service
