@@ -1,0 +1,195 @@
+---
+# Source: phonebook/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+data:
+  MYSQL_USER: "Zmxhc2tteXNxbHVzZXI="
+  MYSQL_PASSWORD: "Zmxhc2tteXNxbDQ1Ng=="
+  MYSQL_ROOT_PASSWORD: "ZGJteXNxbDM0NQ=="
+---
+# Source: phonebook/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  MYSQL_HOST: "phonebook-mysql"
+  MYSQL_DATABASE: "flaskmysql"
+  REDIS_HOST: "flask-redis"
+---
+# Source: phonebook/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-app
+spec:
+  type: ClusterIP
+  selector:
+    app: flask-app
+  ports:
+    - port: 8181
+      targetPort: 8181
+      protocol: TCP
+---
+# Source: phonebook/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: phonebook-mysql
+spec:
+  type: ClusterIP
+  selector:
+    app: phonebook-mysql
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+---
+# Source: phonebook/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-redis
+spec:
+  type: ClusterIP
+  selector:
+    app: flask-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP
+---
+# Source: phonebook/templates/app-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app  
+  labels:
+    app: flask-app  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-app  
+  template:
+    metadata:
+      labels:
+        app: flask-app  
+    spec:
+      initContainers:
+        - name: init-flaskdb
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nslookup flaskdb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for mydb; sleep 2; done;
+        - name: init-flask-redis
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until nslookup flask-redis.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myredis; sleep 2; done;      
+      containers:
+      - name: flask-app 
+        image: baljeetkaur12/flask-app-img:latest
+        ports:
+        - containerPort: 8181
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret
+---
+# Source: phonebook/templates/db-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phonebook-mysql
+  labels:
+    app: phonebook-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phonebook-mysql
+  template:
+    metadata:
+      labels:
+        app: phonebook-mysql
+    spec:
+      containers:
+      - name: phonebook-mysql
+        image: baljeetkaur12/flask-mysql-img:latest
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MYSQL_USER
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: MYSQL_DATABASE
+---
+# Source: phonebook/templates/redis-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-redis
+  labels:
+    app: flask-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app:  flask-redis
+  template:
+    metadata:
+      labels:
+        app:  flask-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+---
+# Source: phonebook/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flask-app-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: flask-app
+                port:
+                  number: 8181
